@@ -11381,7 +11381,10 @@ html[dir=rtl] ._3KiSR{
 }
 ._2oKVP{
     opacity:1;
-    transition:opacity .3s cubic-bezier(.1,.82,.25,1)
+    transition:opacity .3s cubic-bezier(.1,.82,.25,1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 .fX_7B,.w0LJp{
     opacity:0
@@ -16135,4 +16138,10 @@ html[dir=rtl] ._2ICcy:after{
 }
 #main {
     display:none;
+}
+
+#picture-camera {
+    height: auto;
+    width: 100%;
+
 }
