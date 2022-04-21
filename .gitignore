@@ -40,3 +40,7 @@ Thumbs.db
 
 # NODE MODULES
 node_modules/*
+
+
+# FIREBASE
+util/Firebase.js
