@@ -43,4 +43,4 @@ node_modules/*
 
 
 # FIREBASE
-util/Firebase.js
+src/util/Firebase.js
