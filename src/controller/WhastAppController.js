@@ -4,6 +4,7 @@ import { MicrophoneController } from './MicrophoneController.js';
 import { DocumentPreviewController } from './DocumentPreviewController';
 import { Firebase } from './../util/Firebase';
 import { User } from '../model/User';
+import { Chat } from '../model/Chat';
 
 
 export default class WhatsAppController {
@@ -141,6 +142,8 @@ export default class WhatsAppController {
                 }
 
                 div.on('click', e => {
+
+                    console.log('chatid: ',contact.chatId)
 
                     this.el.activeName.innerHTML = contact.name;
                     this.el.activeStatus.innerHTML = contact.status;
@@ -339,13 +342,21 @@ export default class WhatsAppController {
 
                 if (data.name) {
 
-                    this._user.addContact(contact).then(() => {
+                    Chat.createIfNotExists(this._user.email, contact.email).then(chat => {
 
-                        this.el.btnClosePanelAddContact.click();
-                        console.info('Contato adicionado')
+                        contact.chatId = chat.id;
 
+                        this._user.chatId = chat.id;
+
+                        contact.addContact(this._user);
+
+                        this._user.addContact(contact).then(() => {
+
+                            this.el.btnClosePanelAddContact.click();
+                            console.info('Contato adicionado')
+    
+                        });
                     });
-
 
                 } else {
                     console.error('Usuário não encontrado.')
