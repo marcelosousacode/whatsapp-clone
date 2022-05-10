@@ -158,7 +158,7 @@ export default class WhatsAppController {
     }
 
     setActiveChat(contact){
-
+        let msContainer = this.el.panelMessagesContainer
         if(this._contactActive) {
             Message.getRef(this._contactActive.chatId).onSnapshot(()=>{});
         }
@@ -179,12 +179,11 @@ export default class WhatsAppController {
             display:'flex'
         });
 
-        this.el.panelMessagesContainer.innerHTML = '';
+        msContainer.innerHTML = '';
 
         Message.getRef(this._contactActive.chatId).orderBy('timeStamp').onSnapshot(docs=> {
 
 
-            let msContainer = this.el.panelMessagesContainer
             let scrollTop = msContainer.scrollTop;
             let scrollTopMax = (msContainer.scrollHeight - msContainer.offsetHeight);
             let autoScroll = (scrollTop >= scrollTopMax);
@@ -195,24 +194,36 @@ export default class WhatsAppController {
                 let data = doc.data();
                 data.id = doc.id;
 
-                if (!this.el.panelMessagesContainer.querySelector('#_' + data.id)) {
-                    
-                    let message = new Message();
+                let message = new Message();
 
-                    message.fromJSON(data);
+                message.fromJSON(data);
 
-                    let me = (data.from === this._user.email);
+                let me = (data.from === this._user.email);
+
+                if (!msContainer.querySelector('#_' + data.id)) {
+
+                    if (!me) {
+                        doc.ref.set({
+                            status: 'read'
+                        }, {
+                            merge: true
+                        });
+                    }
                     let view = message.getViewElement(me);
 
                     msContainer.appendChild(view);
 
+                } else if(me) {
+                    let msgEl = msContainer.querySelector('#_' + data.id);
+
+                    msgEl.querySelector('.message-status').innerHTML = message.getStatusViewElement().outerHTML;
                 }
                 
             });
 
             if (autoScroll) {
 
-                msContainer.scrollTop = (msContainer.scrollHeight - this.el.panelMessagesContainer.offsetHeight)
+                msContainer.scrollTop = (msContainer.scrollHeight - msContainer.offsetHeight)
 
             } else {
                 msContainer.scrollTop = scrollTop;
