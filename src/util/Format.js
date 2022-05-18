@@ -1,3 +1,5 @@
+
+
 export class Format {
 
     static getCamelCase(text) {

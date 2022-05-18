@@ -6,6 +6,9 @@ import { Firebase } from './../util/Firebase';
 import { User } from '../model/User';
 import { Chat } from '../model/Chat';
 import { Message } from '../model/Message';
+import { Base64 } from '../util/base64';
+import { ContactsController } from './ContactsController';
+
 
 
 export default class WhatsAppController {
@@ -213,7 +216,15 @@ export default class WhatsAppController {
 
                     msContainer.appendChild(view);
 
-                } else if(me) {
+                } else {
+
+                    let view = message.getViewElement(me);
+
+                    msContainer.querySelector('#_' + data.id).innerHTML = view.innerHTML;
+
+                }
+                
+                if(msContainer.querySelector('#_' + data.id) && me) {
                     let msgEl = msContainer.querySelector('#_' + data.id);
 
                     msgEl.querySelector('.message-status').innerHTML = message.getStatusViewElement().outerHTML;
@@ -489,11 +500,8 @@ export default class WhatsAppController {
 
         this.el.inputPhoto.on('change', e => {
 
-            console.log(this.el.inputPhoto.files);
-
             [...this.el.inputPhoto.files].forEach(file => {
-                Message.sendImage(this._contactActive.chatId,
-                    this._user.email, file);
+                Message.sendImage(this._contactActive.chatId, this._user.email, file);
 
             });
 
@@ -549,11 +557,10 @@ export default class WhatsAppController {
             this.el.btnSendPicture.disabled = true;
             
             let regex = /^data:(.+);base64,(.*)$/;
-
             let result = this.el.pictureCamera.src.match(regex)
             let mimeType = result[1];
             let ext = mimeType.split('/')[1];
-            let filename = `camera${Date.now()}.${ext}`
+            let filename = `camera${Date.now()}.${ext}`;
 
             let picture = new Image();
             picture.src = this.el.pictureCamera.src;
@@ -570,7 +577,7 @@ export default class WhatsAppController {
 
                 fetch(canvas.toDataURL(mimeType))
                 .then(res => { return res.arrayBuffer() })
-                .then(buffer => {return new File([buffer], filename, {type: mimeType}); })
+                .then(buffer => {return new File([buffer], filename, { type:mimeType }) })
                 .then(file => {
     
                     Message.sendImage(this._contactActive.chatId, this._user.email, file);
@@ -668,19 +675,48 @@ export default class WhatsAppController {
         this.el.btnClosePanelDocumentPreview.on('click', e => {
 
             this.closeAllMainPanel();
+            this.el.panelMessagesContainer.show();
 
 
         })
 
         this.el.btnSendDocument.on('click', e => {
 
-            console.log('send document')
+            let file = this.el.inputDocument.files[0];
+            let base64 = this.el.imgPanelDocumentPreview.src;
+
+            if (file.type === 'application/pdf') {
+
+                Base64.toFile(base64).then(filePreview => {
+                    Message.sendDocument(this._contactActive.chatId,
+                        this._user.email, file, filePreview, this.el.infoPanelDocumentPreview.innerHTML);
+                });
+ 
+            }   else {
+
+                Message.sendDocument(this._contactActive.chatId,
+                    this._user.email, file );
+
+
+            }
+
+            this.el.btnClosePanelDocumentPreview.click();
 
         })
 
         this.el.btnAttachContact.on('click', e => {
+            this._contactsController = new ContactsController(this._contactsController, this._user);
 
-            this.el.modalContacts.show();
+            this._contactsController.on('select', contact => {
+
+                Message.sendContact(this._contactActive.chatId,
+                    this._user.email,
+                    contact
+                );
+
+            })
+
+            this._contactsController.open();
 
         })
 
@@ -721,7 +757,7 @@ export default class WhatsAppController {
 
         this.el.btnCloseModalContacts.on('click', e => {
 
-            this.el.modalContacts.hide();
+            this._contactsController.close();
 
         })
 
