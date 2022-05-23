@@ -9,7 +9,6 @@ export class ContactsController extends ClassEvent {
         this._user = user;
         this._modalEl = modalEl;
         this._listEl = document.querySelector('#contact-list')
-
     }
 
     open() {
